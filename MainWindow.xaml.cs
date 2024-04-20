@@ -2,12 +2,12 @@
 using System.Windows;
 
 namespace SearchWordApp;
-
+// C:\Users\snizh\OneDrive\Робочий стіл\exam
 public partial class MainWindow : Window
 {
-    private int filesChecked;
-    private int totalFiles;
-    private object locker = new object();
+    private int _filesChecked;
+    private int _totalFiles;
+    private object _locker = new object();
 
     public MainWindow()
     {
@@ -15,29 +15,39 @@ public partial class MainWindow : Window
         pb_process.Value = 0;
     }
 
-    private async void Button_Click(object sender, RoutedEventArgs e)
+    private async void SearchButtonOnClick(object sender, RoutedEventArgs e)
     {
+        resetData();
         tb_data.Text = "Checking files..." + Environment.NewLine;
         string word = tb_word.Text;
         string path = tb_path.Text;
 
 
         List<string> files = new List<string>();
-        await Task.Run(() =>
+        if (path == "" || word == "")
         {
-            GetFolders(path, files);
-            Parallel.ForEach(files, (file) =>
+            tb_data.Text = "Please enter the path and word";
+            return;
+        }
+        else {
+            await Task.Run(() =>
             {
-                ReadFile(file, word).Wait();
-                totalFiles = files.Count;
-            }); //cинхронно чекає wait 
-        });
+
+                GetFolders(path, files);
+                Parallel.ForEach(files, (file) =>
+                {
+                    ReadFile(file, word).Wait();
+                    _totalFiles = files.Count;
+                }); //cинхронно чекає wait 
+            });
+        }
     }
 
     private async Task ReadFile(string path, string word)
     {
 
-        int count = 0;
+        
+        int countWord = 0;
         using (FileStream fs = new FileStream(path, FileMode.Open))
         {
             using (StreamReader sr = new StreamReader(fs))
@@ -47,30 +57,30 @@ public partial class MainWindow : Window
                     string? text = await sr.ReadLineAsync();
                     if (text != null && text.Contains(word))
                     {
-                        count++;
+                        countWord++;
                     }
                 }
             }
         }
-        lock (locker)
+        lock (_locker)
         {
-            filesChecked++;
-            if (totalFiles != 0)
+            _filesChecked++;
+            if (_totalFiles != 0)
             {
-                Dispatcher.Invoke(() => pb_process.Value = (double)filesChecked / totalFiles * 100);
+                Dispatcher.Invoke(() => pb_process.Value = (double)_filesChecked / _totalFiles * 100);
             }
-            Dispatcher.Invoke(() => textBlock.Text = $"{filesChecked}/{totalFiles} files");
+            Dispatcher.Invoke(() => textBlock.Text = $"{_filesChecked}/{_totalFiles} files");
 
         }
 
-        Dispatcher.Invoke(() => tb_data.Text += $"{System.IO.Path.GetFileName(path)} | {System.IO.Path.GetFullPath(path)} | {count}{Environment.NewLine}");
+        Dispatcher.Invoke(() => tb_data.Text += $"{System.IO.Path.GetFileName(path)} | {System.IO.Path.GetFullPath(path)} | {countWord}{Environment.NewLine}");
         await Task.Delay(1000);
 
     }
 
     private static void GetFolders(string path, List<string> files)
     {
-
+       
         foreach (var file in Directory.EnumerateFiles(path))
         {
             files.Add(file);
@@ -79,5 +89,13 @@ public partial class MainWindow : Window
         {
             GetFolders(folder, files);
         }
+    }
+
+    private void resetData()
+    {
+        _filesChecked = 0;
+        pb_process.Value = 0;
+        tb_data.Text = "";
+        textBlock.Text = "";
     }
 }

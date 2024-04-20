@@ -26,7 +26,7 @@
             materialDesign:ButtonAssist.CornerRadius="10" BorderBrush="#60a1fa"
             IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
             Style="{StaticResource MaterialDesignRaisedButton}" 
-            Click="Button_Click"/>
+            Click="SearchButtonOnClick"/>
     <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
             FontSize="34" x:Name="textBlock" Grid.Column="1" Grid.Row="2"/>
     <TextBox x:Name="tb_word" Height="50" Grid.Row="0"
