@@ -2,7 +2,6 @@
 using System.Windows;
 
 namespace SearchWordApp;
-// C:\\Users\\snizh\\OneDrive\\Робочий стіл\\exam
 
 public partial class MainWindow : Window
 {
